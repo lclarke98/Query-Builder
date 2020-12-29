@@ -63,9 +63,8 @@ func main() {
 	for _, x := range events[1:]{
 		fmt.Printf("%+v\n", x)
 	}
-	generateQuery(events[2].Code, events[2].NewCode, events[2].NewDate)
+	generateQuery(events[1].Code, events[1].NewCode, events[1].NewDate)
 }
-
 
 func generateNewCode(oldCode, newDate string) string {
 	date := ""
@@ -84,7 +83,6 @@ func generateNewCode(oldCode, newDate string) string {
 
 func generateQuery(oldCode, newCode, newDate string) string {
 	var ce CurrentEvent
-
 	db := dbConn()
 
 	err := db.QueryRow("SELECT start_date, end_date FROM events WHERE code = ? ", oldCode).Scan(&ce.StartDate, &ce.EndDate)
@@ -117,14 +115,33 @@ func generateDateTime(dateTime, newDate string) string {
 
 func getMonth(newDate string) string  {
 	month := ""
-	if strings.Contains(newDate, "March"){
+	if strings.Contains(newDate, "January"){
+		month = "01"
+	}else if strings.Contains(newDate, "February") {
+		month = "02"
+	}else if strings.Contains(newDate, "March") {
 		month = "03"
 	}else if strings.Contains(newDate, "April") {
 		month = "04"
 	}else if strings.Contains(newDate, "May") {
 		month = "05"
+	}else if strings.Contains(newDate, "June") {
+		month = "06"
+	}else if strings.Contains(newDate, "July") {
+		month = "07"
+	}else if strings.Contains(newDate, "August") {
+		month = "08"
+	}else if strings.Contains(newDate, "September") {
+		month = "09"
+	}else if strings.Contains(newDate, "October") {
+		month = "10"
+	}else if strings.Contains(newDate, "November") {
+		month = "11"
+	}else if strings.Contains(newDate, "December") {
+		month = "12"
+	}else{
+		month = "Could not calculate"
 	}
-
 	return month
 }
 
@@ -147,6 +164,20 @@ func getDay(date string) string  {
 		day = "02"
 	}else if strings.Contains(date, "3") {
 		day = "03"
+	}else if strings.Contains(date, "4") {
+		day = "04"
+	}else if strings.Contains(date, "5") {
+		day = "05"
+	}else if strings.Contains(date, "6") {
+		day = "06"
+	}else if strings.Contains(date, "7") {
+		day = "07"
+	}else if strings.Contains(date, "8") {
+		day = "08"
+	}else if strings.Contains(date, "9") {
+		day = "09"
+	}else {
+		day = date
 	}
 	return day
 }
