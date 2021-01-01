@@ -38,11 +38,19 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
+
 func main() {
 	// Open the file
 	csvFile, _ := os.Open("/Users/leoclarke/Desktop/Sheet1.csv")
-
 	reader := csv.NewReader(bufio.NewReader(csvFile))
+	newCsv, err := os.Create("new.csv")
+	defer newCsv.Close()
+
+	if err != nil {
+
+		log.Fatalln("failed to open file", err)
+	}
+
 	var events []Event
 	for {
 		col, err := reader.Read()
@@ -51,19 +59,25 @@ func main() {
 		} else if err != nil {
 			log.Fatal(err)
 		}
+		newCode := generateNewCode(col[0],col[3])
 		events = append(events, Event{
 			Code: col[0],
 			OldDate:  col[1],
 			Venue:  col[2],
 			NewDate:  col[3],
-			NewCode: generateNewCode(col[0],col[3]),
+			NewCode: newCode,
 		})
+		generateQuery(col[0], newCode, col[3])
+		row := [] [] string{{col[0],col[1],col[2],col[3],newCode}}
+		w := csv.NewWriter(newCsv)
+		err = w.WriteAll(row)
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	for _, x := range events[1:]{
-		fmt.Printf("%+v\n", x)
-	}
-	generateQuery(events[1].Code, events[1].NewCode, events[1].NewDate)
+
 }
 
 func generateNewCode(oldCode, newDate string) string {
@@ -81,9 +95,10 @@ func generateNewCode(oldCode, newDate string) string {
 	return newString
 }
 
-func generateQuery(oldCode, newCode, newDate string) string {
+func generateQuery(oldCode, newCode, newDate string) bool {
 	var ce CurrentEvent
 	db := dbConn()
+	check := false
 
 	err := db.QueryRow("SELECT start_date, end_date FROM events WHERE code = ? ", oldCode).Scan(&ce.StartDate, &ce.EndDate)
 	if err != nil {
@@ -96,11 +111,11 @@ func generateQuery(oldCode, newCode, newDate string) string {
 			panic(err.Error())
 		}
 		_, _ = insForm.Exec(newCode, newStartDate, newEndDate, oldCode)
+		check = true
 		fmt.Print("UPDATE events SET code =", "'" ,newCode, "'" ,", start_date =","'" ,newStartDate,"'" , ", end_date = ","'" , newEndDate,"'" , ",WHERE code =","'" ,oldCode,"'" )
 	}
 
-	query := "update "
-	return query
+	return check
 }
 
 func generateDateTime(dateTime, newDate string) string {
@@ -181,3 +196,4 @@ func getDay(date string) string  {
 	}
 	return day
 }
+
